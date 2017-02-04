@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.StringTokenizer;
@@ -54,102 +55,130 @@ public class CowPartySolution {
 	static int party;	//	1<=파티 열리는 농장<=농장의 수
 	static int [][] roadMap;
 	
-	static boolean [] visit;
-	static int [] distance;
+//	static boolean [] visit;
+	static int [][] distance;
+	static int max;
+	
+	static PriorityQueue<Farm> pq;
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		BufferedReader br = new BufferedReader(new FileReader("cowparty_input.txt"));
+//		BufferedReader br = new BufferedReader(new FileReader("cowparty_input.txt"));
 //		BufferedReader br = new BufferedReader(new FileReader("dijkstra_input.txt"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		
 		test_case = Integer.parseInt(br.readLine());
 		
-		StringTokenizer st;
-		
-		st = new StringTokenizer(br.readLine());
-		
-		farm = Integer.parseInt(st.nextToken());
-		road = Integer.parseInt(st.nextToken());
-		party = Integer.parseInt(st.nextToken());
-		
-		roadMap = new int[farm+1][farm+1];
-		
-		int from;
-		int to;
-		int time;
-		
-		System.out.println("farm : " + farm + ", road : " + road + ", party : " + party);
-		
-		for(int i=1; i<=road; i++){
+		for(int z=1; z<=test_case; z++){
+			
+			StringTokenizer st;
+			
 			st = new StringTokenizer(br.readLine());
 			
-			from = Integer.parseInt(st.nextToken());
-			to = Integer.parseInt(st.nextToken());
-			time = Integer.parseInt(st.nextToken());
+			farm = Integer.parseInt(st.nextToken());
+			road = Integer.parseInt(st.nextToken());
+			party = Integer.parseInt(st.nextToken());
 			
-//			System.out.println("from : " + from + " to : " + to + " time : " + time);
+			roadMap = new int[farm+1][farm+1];
 			
-			roadMap[from][to] = time;
+			int from;
+			int to;
+			int time;
+			
+	//		System.out.println("farm : " + farm + ", road : " + road + ", party : " + party);
+			
+			for(int i=1; i<=road; i++){
+				st = new StringTokenizer(br.readLine());
+				
+				from = Integer.parseInt(st.nextToken());
+				to = Integer.parseInt(st.nextToken());
+				time = Integer.parseInt(st.nextToken());
+				
+	//			System.out.println("from : " + from + " to : " + to + " time : " + time);
+				
+				roadMap[from][to] = time;
+			}
+			
+	//		printMatrix(roadMap);
+			
+			distance = new int[farm+1][farm+1];
+	//		visit = new boolean[farm+1];
+			
+	//		Arrays.fill(distance, Integer.MAX_VALUE);
+			for(int i=1; i<=farm; i++){
+				for(int j=1; j<=farm; j++){
+					distance[i][j] = Integer.MAX_VALUE;
+				}
+			}
+	//		Arrays.fill(visit, false);
+			
+			go();
+	//		go(2);
+			System.out.println("#" + test_case + " "+ max);
 		}
-		
-		printMatrix(roadMap);
-		
-		distance = new int[farm+1];
-		visit = new boolean[farm+1];
-		
-		Arrays.fill(distance, Integer.MAX_VALUE);
-		Arrays.fill(visit, false);
-		
-		go(1);
-//		go(2);
-		
 		br.close();
 	}
 	
-	static void go(int from){
-		PriorityQueue<Farm> pq = new PriorityQueue<Farm>();
+	static void go(){
 		
-		distance[from] = 0;
-		pq.offer(new Farm(from, distance[from]));
-		
-		while(!pq.isEmpty()){
+		for(int x=1; x<=farm; x++){
 			
-			int cost = pq.peek().getDistance();
-			int here = pq.peek().getIndex();
-			pq.poll();
-			
-//			System.out.println("cost : " + cost
-//					+ ", distance[" + here + "] : " + distance[here]
-//					+ ", here : " + here);
-			
-			//	기존에 저장된 here까지의 거리가 더 가까울 경우
-			if(cost > distance[here]){
-				continue;
-			}
-			
-//			System.out.print(here);
-			
-			for(int i=1; i<=farm; i++){
-				//	자신과의 거리가 아니면서
-//				System.out.println("distance[" + i + "] : " + distance[i] + ", distance[" + here + "] : " + distance[here]
-//						+ ", roadMap[" + here + "][" + i + "] : " + roadMap[here][i]);
-				if( (roadMap[here][i] != 0) &&
-						(distance[i] > distance[here] + roadMap[here][i]) ){
-					//	i까지의 최단거리보다 here 거쳐서 i까지의 거리가 더 가까울 경우
-					//	최단거리 업데이트
-					distance[i] = distance[here] + roadMap[here][i];
-//					printArray(distance);
-					pq.offer(new Farm(i, distance[i]));
-					System.out.println("length of pq : " + pq.size());
+//			if(x == party){
+				
+				pq = new PriorityQueue<Farm>();
+				
+				distance[x][x] = 0;
+				pq.offer(new Farm(x, distance[x][x]));
+				
+				while(!pq.isEmpty()){
+					
+					int cost = pq.peek().getDistance();
+					int here = pq.peek().getIndex();
+					pq.poll();
+//					System.out.println("length of pq : " + pq.size());
+					
+//					System.out.println("cost : " + cost
+//							+ ", distance[" + here + "] : " + distance[here]
+//							+ ", here : " + here);
+					
+					//	기존에 저장된 here까지의 거리가 더 가까울 경우
+					if(cost > distance[x][here]){
+						continue;
+					}
+					
+//					System.out.print(here);
+					
+					for(int i=1; i<=farm; i++){
+						//	자신과의 거리가 아니면서
+//						System.out.println("distance[" + i + "] : " + distance[i] + ", distance[" + here + "] : " + distance[here]
+//								+ ", roadMap[" + here + "][" + i + "] : " + roadMap[here][i]);
+						if( (roadMap[here][i] != 0) &&
+								(distance[x][i] > distance[x][here] + roadMap[here][i]) ){
+							//	i까지의 최단거리보다 here 거쳐서 i까지의 거리가 더 가까울 경우
+							//	최단거리 업데이트
+							distance[x][i] = distance[x][here] + roadMap[here][i];
+//							printArray(distance);
+							pq.offer(new Farm(i, distance[x][i]));
+						}
+					}
 				}
-			}
+//			}
 		}
 		
-		System.out.println();
-		for(int i=1; i<=farm; i++){
-			System.out.print(distance[i] + " ");
+//		System.out.println();
+//		for(int i=1; i<=farm; i++){
+//			System.out.print(distance[i] + " ");
+//		}
+//		System.out.println();
+//		printMatrix(distance);
+		
+		max = distance[1][party] + distance[party][1];
+		for(int i=2; i<=farm; i++){
+			
+			if(max < (distance[i][party] + distance[party][i])){
+				max = distance[i][party] + distance[party][i];
+			}
 		}
-		System.out.println();
 	}
 	
 	static void back(int from){
@@ -173,5 +202,4 @@ public class CowPartySolution {
 		}
 		System.out.println();
 	}
-
 }
