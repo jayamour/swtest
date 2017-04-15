@@ -50,9 +50,9 @@ public class CowPartySolution {
 	
 	static int test_case;
 	
-	static int farm;	//	1<=농장의 수<=1000	
-	static int road;	//	1<=도로의 수<=N*(N-1)
-	static int party;	//	1<=파티 열리는 농장<=농장의 수
+	static int farm;	//	1<=�냽�옣�쓽 �닔<=1000	
+	static int road;	//	1<=�룄濡쒖쓽 �닔<=N*(N-1)
+	static int party;	//	1<=�뙆�떚 �뿴由щ뒗 �냽�옣<=�냽�옣�쓽 �닔
 	static int [][] roadMap;
 	
 //	static boolean [] visit;
@@ -63,9 +63,9 @@ public class CowPartySolution {
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-//		BufferedReader br = new BufferedReader(new FileReader("cowparty_input.txt"));
+		BufferedReader br = new BufferedReader(new FileReader("cowparty_input.txt"));
 //		BufferedReader br = new BufferedReader(new FileReader("dijkstra_input.txt"));
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+//		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		
 		test_case = Integer.parseInt(br.readLine());
 		
@@ -141,7 +141,7 @@ public class CowPartySolution {
 //							+ ", distance[" + here + "] : " + distance[here]
 //							+ ", here : " + here);
 					
-					//	기존에 저장된 here까지의 거리가 더 가까울 경우
+					//	湲곗〈�뿉 ���옣�맂 here源뚯��쓽 嫄곕━媛� �뜑 媛�源뚯슱 寃쎌슦
 					if(cost > distance[x][here]){
 						continue;
 					}
@@ -149,13 +149,13 @@ public class CowPartySolution {
 //					System.out.print(here);
 					
 					for(int i=1; i<=farm; i++){
-						//	자신과의 거리가 아니면서
+						//	�옄�떊怨쇱쓽 嫄곕━媛� �븘�땲硫댁꽌
 //						System.out.println("distance[" + i + "] : " + distance[i] + ", distance[" + here + "] : " + distance[here]
 //								+ ", roadMap[" + here + "][" + i + "] : " + roadMap[here][i]);
 						if( (roadMap[here][i] != 0) &&
 								(distance[x][i] > distance[x][here] + roadMap[here][i]) ){
-							//	i까지의 최단거리보다 here 거쳐서 i까지의 거리가 더 가까울 경우
-							//	최단거리 업데이트
+							//	i源뚯��쓽 理쒕떒嫄곕━蹂대떎 here 嫄곗퀜�꽌 i源뚯��쓽 嫄곕━媛� �뜑 媛�源뚯슱 寃쎌슦
+							//	理쒕떒嫄곕━ �뾽�뜲�씠�듃
 							distance[x][i] = distance[x][here] + roadMap[here][i];
 //							printArray(distance);
 							pq.offer(new Farm(i, distance[x][i]));
