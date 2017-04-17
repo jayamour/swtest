@@ -11,22 +11,25 @@ class Boiler implements Comparable<Boiler> {
 	int index;
 	int in;
 	int out;
+	int sum;
 	
 	int beforeIdx;
-	
-	int sum = in + out;
+
+	ArrayList<Integer> beforeList;
 	
 	long temp;
 
 	public Boiler(int i, long l) {
 		index = i;
 		this.temp = l;
+		
+		beforeList = new ArrayList<Integer>();
 	}
 
 	@Override
 	public int compareTo(Boiler o) {
-//		return (int)(o.temp - this.temp);
-		return o.sum - this.sum;
+		return o.out - this.out;
+//		return o.sum - this.sum;
 	}
 
 	@Override
@@ -98,20 +101,14 @@ public class BoilerTest {
 				from = Integer.parseInt(st.nextToken());
 				to = Integer.parseInt(st.nextToken());
 				
-//				if(from > to){
-//					
-//					int tmp = from;
-//					from = to;
-//					to = tmp;
-//				}
-				
 				graph.get(from).add(to);
 				
 				boiler[from].out++;
-				boiler[from].sum = boiler[from].in + boiler[from].out;
-				
 				boiler[to].in++;
+				
 				boiler[to].sum = boiler[to].in + boiler[to].out;
+				
+				boiler[to].beforeList.add(from);
 				
 				boiler[to].beforeIdx = from;
 				
@@ -149,28 +146,17 @@ public class BoilerTest {
 	
 	static void topologicalSort(){
 		
-//		PriorityQueue<Integer> searchQ = new PriorityQueue<Integer>();	//	탐색 큐
-//		PriorityQueue<Integer> resultQ = new PriorityQueue<Integer>();	//	결과 큐
-		
 		PriorityQueue<Boiler> searchQ = new PriorityQueue<Boiler>();	//	탐색 큐
 		PriorityQueue<Boiler> inQueue = new PriorityQueue<Boiler>();	//	탐색 큐
-		PriorityQueue<Boiler> resultQ = new PriorityQueue<Boiler>();	//	결과 큐
 		
-//		Queue<Integer> searchQ = new LinkedList<Integer>();	//	탐색 큐
-//		Queue<Integer> resultQ = new LinkedList<Integer>();	//	결과 큐
-
 		for(int i=1; i<=totalHouse; i++){
 			
-			searchQ.offer(boiler[i]);
-			
-//			//	진입차수 0인 노드 탐색 큐 넣기
-//			if(indegree[i] == 0){
-//				//	시작점
-//				searchQ.offer(i);
-//			}
+			if(boiler[i].in == 0){
+				inQueue.add(boiler[i]);
+			} else {
+				searchQ.offer(boiler[i]);
+			}
 		}
-		
-		int first = 0;
 		
 		while(!searchQ.isEmpty()){
 			
@@ -179,34 +165,10 @@ public class BoilerTest {
 			
 			Boiler from = searchQ.poll();
 			
-			if(from.in == 0){
-				inQueue.add(from);
-				continue;
-			}
-			
-//			//	결과 큐에 넣기
-//			resultQ.offer(from);
-			
-			//	결과 큐에 넣기
-//			resultQ.offer(boiler[from]);
-//			resultQ.offer(from);
-			
-			//	linkNode = 진입노드가 0인 노드와 연결되어 있던 노드
-//			for(int linkNode : graph.get(from)){
-//				
-//				//	진입차수 감소
-//				indegree[linkNode] = indegree[linkNode] - 1;
-//				
-//				if(indegree[linkNode] == 0){
-//					searchQ.offer(linkNode);
-//				}
-//			}
-			
 			//	start : 3
 			int start = from.index;
 	
 			long tempMax = 0;
-			
 			
 			//	max 찾기
 			for(int linkNode : graph.get(start)){
@@ -227,22 +189,42 @@ public class BoilerTest {
 				boiler[start].temp = y - tempMax;
 			}
 			
-			//	이전 노드가 존재할 경우 이전 노드의 온도도 올림
-			if(boiler[start].beforeIdx != 0){
+			ArrayList<Integer> befList;
+			
+			if(from.beforeList.size() != 0){
 				
-				long x = boiler[boiler[start].beforeIdx].temp;
+				befList = from.beforeList;
 				
-				if(x > 0){
-				
-					//	14-17
-					if( (x - tempMax) < 0 ){
-						boiler[boiler[start].beforeIdx].temp = 0;
-					}else{
-						boiler[boiler[start].beforeIdx].temp = x - tempMax;
-//						searchQ.add(boiler[boiler[start].beforeIdx]);
+				for(int before : befList){
+					
+					long bef = boiler[before].temp;
+					
+					if(bef > 0){
+						
+						if( (bef-tempMax) < 0 ){
+							boiler[before].temp = 0;
+						} else {
+							boiler[before].temp = bef - tempMax;
+						}
 					}
 				}
 			}
+			
+			//	이전 노드가 존재할 경우 이전 노드의 온도도 올림
+//			if(boiler[start].beforeIdx != 0){
+//				
+//				long x = boiler[boiler[start].beforeIdx].temp;
+//				
+//				if(x > 0){
+//				
+//					//	14-17
+//					if( (x - tempMax) < 0 ){
+//						boiler[boiler[start].beforeIdx].temp = 0;
+//					}else{
+//						boiler[boiler[start].beforeIdx].temp = x - tempMax;
+//					}
+//				}
+//			}
 			
 //			System.out.println("tempMax :: " + tempMax);
 			max = max + tempMax;
