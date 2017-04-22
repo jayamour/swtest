@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
@@ -11,30 +12,34 @@ class Boiler implements Comparable<Boiler> {
 	int index;
 	int in;
 	int out;
-	int sum;
 	
 	int beforeIdx;
-
-	ArrayList<Integer> beforeList;
+	
+	ArrayList<Integer> beforeList;	//	이전 리스트
+	
+	ArrayList<Integer> nextList;	//	다음 리스트
+	
+	int sum;
 	
 	long temp;
 
 	public Boiler(int i, long l) {
 		index = i;
 		this.temp = l;
-		
 		beforeList = new ArrayList<Integer>();
+		nextList = new ArrayList<Integer>();
 	}
 
 	@Override
 	public int compareTo(Boiler o) {
-		return o.out - this.out;
 //		return o.sum - this.sum;
+//		return o.out - this.out;
+		return this.out - o.out;
 	}
 
 	@Override
 	public String toString(){
-		return String.valueOf("(" + index + ", " + sum + ")");
+		return String.valueOf("(" + index + ", " + temp + ")");
 	}
 }
 
@@ -55,11 +60,13 @@ public class BoilerTest {
 	
 //	ArrayList<ArrayList<City>> list = new ArrayList<ArrayList<City>>();
 	
-	static ArrayList<ArrayList<Integer>> graph;	//	���� ����Ʈ �׷���
+	static ArrayList<ArrayList<Integer>> graph;	//	인접 리스트 그래프
 
 	public static void main(String[] args) throws Exception {
 
 		BufferedReader br = new BufferedReader(new FileReader("boiler_input.txt"));
+//		BufferedReader br = new BufferedReader(new FileReader("boiler_sample_input.txt"));
+//		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		
 		int test_case;
 		
@@ -103,42 +110,31 @@ public class BoilerTest {
 				
 				graph.get(from).add(to);
 				
-				boiler[from].out++;
-				boiler[to].in++;
-				
-				boiler[to].sum = boiler[to].in + boiler[to].out;
-				
-				boiler[to].beforeList.add(from);
-				
 				boiler[to].beforeIdx = from;
 				
-				indegree[to]++;
+				boiler[from].nextList.add(to);
+				boiler[from].out++;
+				
+				boiler[to].beforeList.add(from);
+				boiler[to].in++;
 			}
 			
+			//	진입+진출차수 계산하여 sum에 저장
 //			for(int i=1; i<=totalHouse; i++){
-//				System.out.print(boiler[i] + " ");
+//				boiler[i].sum = boiler[i].in + boiler[i].out;
 //			}
-//			System.out.println();
 			
 			max = 0;
-			
-//			for(int i=1; i<graph.size(); i++){
-//				
-//				if(graph.get(i).size() != 0){
-//					for(int node : graph.get(i)){
-//						System.out.print(node + " ");
-//					}
-//					System.out.println();
-//				}
-//			}
-			
-//			if(z==3){
-//				printArray(indegree);
-//			}
 			
 			topologicalSort();
 			
 			System.out.println("#" + z + " " + max);
+			
+//			for(int i=1; i<=totalHouse; i++){
+//				if(boiler[i].temp != 0){
+//					System.out.print("i : " + i);
+//				}
+//			}
 		}
 		
 		br.close();
@@ -146,88 +142,191 @@ public class BoilerTest {
 	
 	static void topologicalSort(){
 		
-		PriorityQueue<Boiler> searchQ = new PriorityQueue<Boiler>();	//	Ž�� ť
-		PriorityQueue<Boiler> inQueue = new PriorityQueue<Boiler>();	//	Ž�� ť
+		PriorityQueue<Boiler> searchQ = new PriorityQueue<Boiler>();	//	탐색 큐
+		PriorityQueue<Boiler> inQueue = new PriorityQueue<Boiler>();	//	탐색 큐
+		
+		Queue<Boiler> queue = new LinkedList<Boiler>();
+		
+//		for(int i=1; i<=totalHouse; i++){
+//			System.out.println(boiler[i]);
+//		}
+		
 		
 		for(int i=1; i<=totalHouse; i++){
 			
-			if(boiler[i].in == 0){
-				inQueue.add(boiler[i]);
+			if( boiler[i].in == 0 ){
+				inQueue.offer(boiler[i]);
+//			} else {
+//				searchQ.offer(boiler[i]);
+			}
+			
+			//	진출차수 0인 노드(리프노드) 큐 저장
+			if( boiler[i].out == 0){
+//				System.out.println("i : " + i);
+				queue.add(boiler[i]);
+			}
+		}
+		
+		ArrayList<Integer> nextList;
+		
+		while(!queue.isEmpty()){
+			
+			Boiler from = queue.poll();
+			
+			//	빼야할 온도
+			long temp = from.temp;
+			
+			if(z==8){
+				System.out.println("start >>> " + from.index + ", temp : " + temp);
+			}
+			
+			//	부모 노드로 이동
+			int bef = from.beforeIdx;
+						
+			//	부모 노드에서 시작한 노드의 온도 빼기
+			long befTemp = boiler[bef].temp;
+			
+			if( (befTemp - temp) < 0){
+				boiler[bef].temp = 0;
 			} else {
-				searchQ.offer(boiler[i]);
+				boiler[bef].temp = boiler[bef].temp - temp;
+			}
+			
+			//	부모 노드의 자식 노드에서 시작한 노드의 온도 빼기
+			
+			nextList = boiler[bef].nextList;
+			
+			for(int nextNode : nextList){
+				
+				long t = boiler[nextNode].temp;
+				
+				if(t == 0){
+					continue;
+				} else {
+					
+					if( (t-temp) < 0 ){
+						boiler[nextNode].temp = 0;
+					} else {
+						boiler[nextNode].temp = t - temp;
+					}
+				}
+			}
+			
+			if(z==8){
+//				for(int i=1; i<=totalHouse; i++){
+//					System.out.print(boiler[i] + ", ");
+//				}
+//				System.out.println();
+			}
+			
+			//	부모 노드의 부모 노드 온도 올리기
+			int befStart = boiler[bef].beforeIdx;
+			
+			if(befStart != 0){
+				
+				//	부모 노드의 부모 노드 온도
+				long parentTemp = boiler[befStart].temp;
+				
+				if(parentTemp != 0) {
+					
+					//	시작한 노드의 온도 빼기
+					if( (parentTemp - temp) < 0 ){
+						boiler[befStart].temp = 0;
+					} else {
+						boiler[befStart].temp = parentTemp - temp;
+					}
+				}
+			}
+			
+			max += temp;
+				
+			if(z==8){
+				for(int i=1; i<=totalHouse; i++){
+					System.out.print(boiler[i] + " ");
+				}
+				System.out.println();
 			}
 		}
 		
 		while(!searchQ.isEmpty()){
 			
-			//	Ž�� ť�� �ִ� �� ������
-//			int from = searchQ.poll();
-			
 			Boiler from = searchQ.poll();
 			
 			//	start : 3
 			int start = from.index;
-	
-			long tempMax = 0;
 			
-			//	max ã��
-			for(int linkNode : graph.get(start)){
-				
-//				System.out.println("linkNode ::: " + linkNode);
-				if(tempMax < boiler[linkNode].temp){
-					tempMax = boiler[linkNode].temp;
-				}
-				
-				boiler[linkNode].temp = 0;
-			}
 			
-			long y = boiler[start].temp;
+			//	빼야할 온도
+			long temp = from.temp;
 			
-			if( (y - tempMax) < 0){
-				boiler[start].temp = 0;
-			}else{
-				boiler[start].temp = y - tempMax;
-			}
-			
-			ArrayList<Integer> befList;
-			
-			if(from.beforeList.size() != 0){
-				
-				befList = from.beforeList;
-				
-				for(int before : befList){
-					
-					long bef = boiler[before].temp;
-					
-					if(bef > 0){
+			//	부모 노드로 이동
+			int bef = from.beforeIdx;
 						
-						if( (bef-tempMax) < 0 ){
-							boiler[before].temp = 0;
-						} else {
-							boiler[before].temp = bef - tempMax;
-						}
+			//	부모 노드에서 시작한 노드의 온도 빼기
+			long befTemp = boiler[bef].temp;
+			
+			if( (befTemp - temp) < 0){
+				boiler[bef].temp = 0;
+			} else {
+				boiler[bef].temp = boiler[bef].temp - temp;
+			}
+			
+			//	부모 노드의 자식 노드에서 시작한 노드의 온도 빼기
+			
+			nextList = boiler[bef].nextList;
+			
+			for(int nextNode : nextList){
+				
+				long t = boiler[nextNode].temp;
+				
+				if(t == 0){
+					continue;
+				} else {
+					
+					if( (t-temp) < 0 ){
+						boiler[nextNode].temp = 0;
+					} else {
+						boiler[nextNode].temp = t - temp;
 					}
 				}
 			}
 			
-			//	���� ��尡 ������ ��� ���� ����� �µ��� �ø�
-//			if(boiler[start].beforeIdx != 0){
-//				
-//				long x = boiler[boiler[start].beforeIdx].temp;
-//				
-//				if(x > 0){
-//				
-//					//	14-17
-//					if( (x - tempMax) < 0 ){
-//						boiler[boiler[start].beforeIdx].temp = 0;
-//					}else{
-//						boiler[boiler[start].beforeIdx].temp = x - tempMax;
-//					}
+			if(z==4){
+//				for(int i=1; i<=totalHouse; i++){
+//					System.out.print(boiler[i] + ", ");
 //				}
-//			}
+//				System.out.println();
+			}
 			
-//			System.out.println("tempMax :: " + tempMax);
-			max = max + tempMax;
+			//	부모 노드의 부모 노드 온도 올리기
+			int befStart = boiler[bef].beforeIdx;
+			
+			if(befStart != 0){
+				
+				//	부모 노드의 부모 노드 온도
+				long parentTemp = boiler[befStart].temp;
+				
+				if(parentTemp != 0) {
+					
+					//	시작한 노드의 온도 빼기
+					if( (parentTemp - temp) < 0 ){
+						boiler[befStart].temp = 0;
+					} else {
+						boiler[befStart].temp = parentTemp - temp;
+					}
+				}
+			}
+			
+			max += temp;
+				
+				if(z==3){
+//					System.out.println("tempMin ::: " + tempMin);
+//					for(int i=1; i<=totalHouse; i++){
+//						System.out.print(boiler[i] + " ");
+//					}
+//					System.out.println();
+				}
+//			}
 		}
 
 		
@@ -235,33 +334,36 @@ public class BoilerTest {
 			
 			Boiler from = inQueue.poll();
 			
-//			System.out.println("inQueue from : " + from);
-			
-			int start = from.index;
+			if(z==8){
+				System.out.println(from.temp);
+			}
 	
 			long tempMax = from.temp;
 			
-			//	max ã��
-			for(int linkNode : graph.get(start)){
+			for(int next : from.nextList){
 				
-				if(tempMax < boiler[linkNode].temp){
-					tempMax = boiler[linkNode].temp;
+				if( boiler[next].temp == 0){
+					continue;
 				}
 				
-				boiler[linkNode].temp = 0;
+				if(tempMax < boiler[next].temp){
+					tempMax = boiler[next].temp;
+				}
+				
+				boiler[next].temp = 0;
 			}
 			
-			long y = boiler[start].temp;
+			from.temp = 0;
 			
-//			System.out.println("<<<< " + tempMax + " >>>>");
-			
-			if( (y - tempMax) < 0){
-				boiler[start].temp = 0;
-			}else{
-				boiler[start].temp = y - tempMax;
+			if(z==3){
+//				System.out.println("tempMax ::: " + tempMax);
+//				for(int i=1; i<=totalHouse; i++){
+//					System.out.print(boiler[i] + " ");
+//				}
+//				System.out.println();
 			}
 			
-			//	�������� 0�� ���
+			//	진입차수 0인 노드
 			max = max + tempMax;
 		}
 	}
